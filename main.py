@@ -1,26 +1,16 @@
 from telegram.ext import Updater, CommandHandler, Job, MessageHandler, Filters, CallbackQueryHandler
-from qiskit.backends import discover_local_backends, discover_remote_backends
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import telegram
+import threading
 import logging
 import typing
 import sys
 import json
 import re
 import os
-from IBMQuantumExperience import IBMQuantumExperience
 
 from utils import make_plot, myThread
 
-sys.path.append("res/")
-import Qconfig
-
-qx_config = {
-    "APItoken": Qconfig.APItoken,
-    "url": Qconfig.config['url']
-}
-
-api = IBMQuantumExperience(token=qx_config['APItoken'], config={'url': qx_config['url']})
 counter = 0
 
 info_text = []
@@ -87,7 +77,7 @@ def main():
     run_event.set()
     # Create new threads.
     delay = 60  # Seconds.
-    thread = myThread(delay)
+    thread = myThread(delay, run_event)
     thread.start()
     ########
 

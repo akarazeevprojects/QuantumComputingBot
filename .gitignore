@@ -1,6 +1,8 @@
 res/Qconfig.py
 res/token.json
 data.pkl
+ibmqx4.png
+ibmqx5.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

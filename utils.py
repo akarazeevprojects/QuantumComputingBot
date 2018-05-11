@@ -7,6 +7,21 @@ import pickle
 import time
 from datetime import date, timedelta
 from datetime import datetime as dt
+import os
+from qiskit.backends import discover_local_backends, discover_remote_backends
+
+from IBMQuantumExperience import IBMQuantumExperience
+
+import sys
+sys.path.append("res/")
+import Qconfig
+
+qx_config = {
+    "APItoken": Qconfig.APItoken,
+    "url": Qconfig.config['url']
+}
+
+api = IBMQuantumExperience(token=qx_config['APItoken'], config={'url': qx_config['url']})
 
 
 class myThread(threading.Thread):
@@ -19,7 +34,7 @@ class myThread(threading.Thread):
         dumper(self.delay, self.run_event)
 
 
-def dumper(delay):
+def dumper(delay, run_event):
     if os.path.exists('data.pkl') is False:
         data = list()
         with open('data.pkl', 'wb') as f:
