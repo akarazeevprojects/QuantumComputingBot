@@ -35,14 +35,14 @@ class myThread(threading.Thread):
 
 
 def dumper(delay, run_event):
-    if os.path.exists('data.pkl') is False:
+    if os.path.exists('real_data.pkl') is False:
         data = list()
-        with open('data.pkl', 'wb') as f:
+        with open('real_data.pkl', 'wb') as f:
                 pickle.dump(data, f)
 
     while run_event.is_set():
         # Load.
-        with open('data.pkl', 'rb') as f:
+        with open('real_data.pkl', 'rb') as f:
             data = pickle.load(f)
 
         # Append.
@@ -52,7 +52,7 @@ def dumper(delay, run_event):
         data.append((time.time(), device_status))
 
         # Store.
-        with open('data.pkl', 'wb') as f:
+        with open('real_data.pkl', 'wb') as f:
             pickle.dump(data, f)
 
         # Sleep.
@@ -60,7 +60,7 @@ def dumper(delay, run_event):
 
 
 def make_plot(backend, filename):
-    with open('data.pkl', 'rb') as f:
+    with open('real_data.pkl', 'rb') as f:
         data = pickle.load(f)
 
     times = sorted([x[0] for x in data])
