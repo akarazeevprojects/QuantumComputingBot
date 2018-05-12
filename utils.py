@@ -1,6 +1,8 @@
 import matplotlib
 matplotlib.use('Agg')
 
+import math
+import numpy as np
 import matplotlib.pyplot as plt
 import threading
 import pickle
@@ -15,6 +17,7 @@ from IBMQuantumExperience import IBMQuantumExperience
 import sys
 sys.path.append("res/")
 import Qconfig
+from qiskit import QuantumProgram
 
 qx_config = {
     "APItoken": Qconfig.APItoken,
@@ -77,25 +80,95 @@ def make_plot(backend, filename):
         tmp_ts = float(tmp.strftime('%s'))
         if tmp_ts >= times[0] and tmp_ts <= times[-1]:
             days.append(tmp_ts)
-
+    
+    #Display only last 24h of the data
+    
     plt.figure(figsize=(11, 5))
-    plt.plot(times, pending_jobs, color='blue')
-    plt.grid(color='b', linestyle='--', linewidth=1, alpha=0.3)
-
+    plt.grid(True, zorder=5)
+    plt.fill_between(times,pending_jobs)
+    
     # New xticks.
     locs, labels = plt.xticks()
-    new_ticks = [dt.fromtimestamp(x).strftime('%H:%M') for x in locs]
-    plt.xticks(locs[1:-1], new_ticks[1:-1], rotation=30, fontsize=15)
+    new_ticks = [dt.fromtimestamp(x).strftime('%H')+':00' for x in locs]
+    plt.xticks(locs[1:-1], new_ticks[1:-1], rotation=0, fontsize=15)
     plt.yticks(fontsize=15)
-
+    
+    # y axis: display only integer values
+    yint = []
+    locs, labels = plt.yticks()
+    for each in locs:
+        yint.append(int(each))
+    plt.yticks(yint)
+    plt.ylim(0, math.ceil(max(pending_jobs))+1) #math.ceil(max(pending_jobs))+1
+    
     # Vertical lines.
-    for day in days:
-        plt.axvline(x=day, color='k', linestyle='-.')
+    #for day in days:
+    #    plt.axvline(x=day, color='k', linestyle='-.')
 
     # Captions.
-    plt.title('{} - Local time of bot: {}'.format(backend,
+    plt.title('IBMQ Backend: {}, Local time of bot: {}'.format(backend,
               dt.fromtimestamp(time.time()).strftime('%Y, %b %d, %H:%M')),
               fontsize=15)
     plt.xlabel('Time', fontsize=15)
-    plt.ylabel('Pending jobs', fontsize=15)
+    plt.ylabel('# of pending jobs', fontsize=15)
+    plt.show()
     plt.savefig(filename, bbox_inches='tight')
+
+def plot_calibration(backend):
+    Q_program = QuantumProgram()
+    Q_program.set_api(Qconfig.APItoken, Qconfig.config["url"])
+    full_info = Q_program.get_backend_calibration(backend)
+    
+    N_qubits = len(full_info['qubits'])
+    qubits = [full_info['qubits'][qub]['name'] for qub in range(N_qubits)]
+    readout_error = [full_info['qubits'][qub]['readoutError']['value'] for qub in range(N_qubits)]
+    readout_error = np.array([readout_error])
+    
+    last_update = full_info['last_update_date']
+    last_update = dt.strptime(last_update, "%Y-%m-%dT%H:%M:%S.000Z").timestamp()
+    last_update = dt.fromtimestamp(last_update).strftime('%Y, %b %d, %H:%M')    
+ 
+    plt.matshow(readout_error, cmap='Reds')
+
+    # Placing actual values in the matshow plot
+    for (i,), value in np.ndenumerate(readout_error[0]):
+        plt.text(i, 0, '{:0.2f}'.format(value), ha='center', va='center')    
+    
+    # Formatting axes
+    locs, labels = plt.xticks()
+    plt.xticks(1+locs, qubits)
+    plt.yticks([],[])
+    plt.autoscale(axis = 'both', tight=True)
+    
+    plt.title('Backend: {}, Single qubits readout errors,\n last calibration: {}\n'.format(backend, last_update), fontsize=15)
+    plt.margins(tight=True)
+    plt.savefig(backend+'_readout_err.png', bbox_inches='tight')
+    plt.show()
+    
+    multi_qubit_gates = [full_info['multi_qubit_gates'][qub]['qubits'] for qub in range(N_qubits)]
+    multi_qubit_error = [full_info['multi_qubit_gates'][qub]['gateError']['value'] for qub in range(N_qubits)]    
+    
+    # creating gate error matrix
+    error_matrix = np.zeros((N_qubits,N_qubits))
+    for i in range(len(multi_qubit_gates)):
+        gate = multi_qubit_gates[i]
+        qub1, qub2 = gate[0], gate[1]
+        error_matrix[qub1][qub2] = multi_qubit_error[i]
+    # Symmetrizing the error matrix
+    error_matrix = 1./2*(error_matrix + error_matrix.T)
+    plt.matshow(error_matrix, cmap='Reds')
+    
+    # Placing actual values in the matshow plot
+    for (i, j), value in np.ndenumerate(error_matrix):
+        plt.text(j, i, '{:0.2f}'.format(value), ha='center', va='center')
+    
+    plt.title('Backend: {}, Two qubit gate errors,\n last calibration: {}\n'.format(backend, last_update), fontsize=15)
+    
+    # Formatting axes
+    locs, labels = plt.yticks()
+    plt.yticks(1+locs, qubits)
+    
+    locs, labels = plt.xticks()
+    plt.xticks(1+locs, qubits)
+    plt.autoscale(axis = 'both', tight=True)
+    plt.savefig(backend+'_multiqubut_err.png', bbox_inches='tight')
