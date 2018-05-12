@@ -31,7 +31,7 @@ def handle_command(command, channel):
     backends = ['ibmqx4', 'ibmqx5']
     backend = command
     if backend in backends:
-        filename = '{}_to_send.png'.format(backend)
+        filename = 'tmp/{}_to_send.png'.format(backend)
         utils.create_statistics_image(backend)
         slack_client.api_call(
             'files.upload',

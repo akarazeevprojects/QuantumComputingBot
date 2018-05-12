@@ -1,5 +1,5 @@
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 import math
 import numpy as np
@@ -26,6 +26,8 @@ qx_config = {
 }
 
 api = IBMQuantumExperience(token=qx_config['APItoken'], config={'url': qx_config['url']})
+PKL1 = 'real_data_1.pkl'
+PKL2 = 'real_data_2.pkl'
 
 
 class myThread(threading.Thread):
@@ -39,15 +41,24 @@ class myThread(threading.Thread):
 
 
 def dumper(delay, run_event):
-    if os.path.exists('real_data.pkl') is False:
+    if os.path.exists(PKL1) is False:
         data = list()
-        with open('real_data.pkl', 'wb') as f:
-                pickle.dump(data, f)
+        with open(PKL1, 'wb') as f:
+            pickle.dump(data, f)
+    if os.path.exists(PKL2) is False:
+        data = list()
+        with open(PKL2, 'wb') as f:
+            pickle.dump(data, f)
 
+    step = 0
     while run_event.is_set():
         # Load.
-        with open('real_data.pkl', 'rb') as f:
-            data = pickle.load(f)
+        if step == 0:
+            with open(PKL1, 'rb') as f:
+                data = pickle.load(f)
+        elif step == 1:
+            with open(PKL2, 'rb') as f:
+                data = pickle.load(f)
 
         # Append.
         remote_backends = discover_remote_backends(api)
@@ -56,16 +67,27 @@ def dumper(delay, run_event):
         data.append((time.time(), device_status))
 
         # Store.
-        with open('real_data.pkl', 'wb') as f:
-            pickle.dump(data, f)
+        if step == 0:
+            with open(PKL1, 'wb') as f:
+                pickle.dump(data, f)
+        elif step == 1:
+            with open(PKL2, 'wb') as f:
+                pickle.dump(data, f)
+
+        step += 1
+        step %= 2
 
         # Sleep.
         time.sleep(delay)
 
 
 def make_plot(backend):
-    with open('real_data.pkl', 'rb') as f:
-        data = pickle.load(f)
+    try:
+        with open(PKL1, 'rb') as f:
+            data = pickle.load(f)
+    except pickle.UnpicklingError as e:
+        with open(PKL2, 'rb') as f:
+            data = pickle.load(f)
 
     times = sorted([x[0] for x in data])
     pending_jobs = [[y for y in x[1] if y['backend'] == backend][0]['pending_jobs']
@@ -112,7 +134,7 @@ def make_plot(backend):
               fontsize=15)
     plt.xlabel('Time', fontsize=15)
     plt.ylabel('# of pending jobs', fontsize=15)
-    filename = '{}.png'.format(backend)
+    filename = 'tmp/{}.png'.format(backend)
     plt.savefig(filename, bbox_inches='tight')
     plt.close()
 
@@ -141,7 +163,7 @@ def plot_calibration(backend):
     plt.autoscale(axis='both', tight=True)
     plt.title('Backend: {}, Single qubits readout errors,\n last calibration: {}\n'.format(backend, last_update), fontsize=15)
     plt.margins(tight=True)
-    plt.savefig('{}_readout_err.png'.format(backend), bbox_inches='tight')
+    plt.savefig('tmp/{}_readout_err.png'.format(backend), bbox_inches='tight')
     plt.close()
     #####################
 
@@ -170,7 +192,7 @@ def plot_calibration(backend):
     plt.yticks(np.arange(N_qubits), qubits)
     plt.xticks(np.arange(N_qubits), qubits)
     plt.autoscale(axis='both', tight=True)
-    plt.savefig('{}_multiqubut_err.png'.format(backend), bbox_inches='tight')
+    plt.savefig('tmp/{}_multiqubut_err.png'.format(backend), bbox_inches='tight')
     plt.close()
 
 
@@ -178,13 +200,13 @@ def create_statistics_image(backend):
     plot_calibration(backend)
     make_plot(backend)
 
-    img_merror = Image.open('{}_multiqubut_err.png'.format(backend), 'r')
+    img_merror = Image.open('tmp/{}_multiqubut_err.png'.format(backend), 'r')
     img_merror_w, img_merror_h = img_merror.size
 
-    img_rerror = Image.open('{}_readout_err.png'.format(backend), 'r')
+    img_rerror = Image.open('tmp/{}_readout_err.png'.format(backend), 'r')
     img_rerror_w, img_rerror_h = img_rerror.size
 
-    img_jobs = Image.open('{}.png'.format(backend), 'r')
+    img_jobs = Image.open('tmp/{}.png'.format(backend), 'r')
     img_jobs_w, img_jobs_h = img_jobs.size
 
     img_background = Image.new('RGBA', (int((img_merror_w + img_jobs_w)),
@@ -227,7 +249,7 @@ def create_statistics_image(backend):
     img_background.paste(img_rqc, offset)
     ################################################
 
-    img_background.save('{}_to_send.png'.format(backend))
+    img_background.save('tmp/{}_to_send.png'.format(backend))
 
     img_background.close()
     img_rqc.close()

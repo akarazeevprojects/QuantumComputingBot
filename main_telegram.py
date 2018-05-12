@@ -46,7 +46,7 @@ def choose_backend(bot, update):
         create_statistics_image(backend)
 
         user_id = update.message.chat_id
-        bot.send_photo(chat_id=user_id, photo=open('{}_to_send.png'.format(backend), 'rb'))
+        bot.send_photo(chat_id=user_id, photo=open('tmp/{}_to_send.png'.format(backend), 'rb'))
     else:
         update.message.reply_text(info_text)
 
