@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 import math
 import numpy as np
@@ -73,7 +73,7 @@ def make_plot(backend):
 
     d1 = dt.fromtimestamp(times[0]).date()
     d2 = dt.fromtimestamp(times[-1]).date()
-    
+
     # Timedelta.
     delta = d2 - d1
     days = list()
@@ -120,26 +120,25 @@ def make_plot(backend):
 def plot_calibration(backend):
     full_info = api.backend_calibration(backend=backend)
 
+    # Info.
     N_qubits = len(full_info['qubits'])
     qubits = [full_info['qubits'][qub]['name'] for qub in range(N_qubits)]
     readout_error = [full_info['qubits'][qub]['readoutError']['value'] for qub in range(N_qubits)]
     readout_error = np.array([readout_error])
-
     last_update = full_info['lastUpdateDate']
     last_update = dt.strptime(last_update, "%Y-%m-%dT%H:%M:%S.000Z").timestamp()
     last_update = dt.fromtimestamp(last_update).strftime('%Y, %b %d, %H:%M')
 
+    plt.close()
     plt.figure(figsize=(15, 15))
     plt.matshow(readout_error, cmap='Reds', fignum=1)
-
-    # Placing actual values in the matshow plot
+    # Placing actual values in the matshow plot.
     for (i,), value in np.ndenumerate(readout_error[0]):
         plt.text(i, 0, '{:0.2f}'.format(value), ha='center', va='center')
 
     plt.xticks(np.arange(N_qubits), qubits)
     plt.yticks([], [])
     plt.autoscale(axis='both', tight=True)
-
     plt.title('Backend: {}, Single qubits readout errors,\n last calibration: {}\n'.format(backend, last_update), fontsize=15)
     plt.margins(tight=True)
     plt.savefig('{}_readout_err.png'.format(backend), bbox_inches='tight')
@@ -152,30 +151,27 @@ def plot_calibration(backend):
     multi_qubit_gates = [full_info['multiQubitGates'][qub]['qubits'] for qub in range(N_qubits)]
     multi_qubit_error = [full_info['multiQubitGates'][qub]['gateError']['value'] for qub in range(N_qubits)]
 
-    # creating gate error matrix
+    # creating gate error matrix.
     error_matrix = np.zeros((N_qubits, N_qubits))
     for i in range(len(multi_qubit_gates)):
         gate = multi_qubit_gates[i]
         qub1, qub2 = gate[0], gate[1]
         error_matrix[qub1][qub2] = multi_qubit_error[i]
-    # Symmetrizing the error matrix
+    # Symmetrizing the error matrix.
     error_matrix = (error_matrix + error_matrix.T) / 2
 
     plt.figure(figsize=(6, 6))
     plt.matshow(error_matrix, cmap='Reds', fignum=1)
-
+    plt.title('Backend: {}, Two qubit gate errors,\n last calibration: {}\n'.format(backend, last_update), fontsize=15)
     # Placing actual values in the matshow plot
     for (i, j), value in np.ndenumerate(error_matrix):
         plt.text(j, i, '{:0.2f}'.format(value), ha='center', va='center')
-
-    plt.title('Backend: {}, Two qubit gate errors,\n last calibration: {}\n'.format(backend, last_update), fontsize=15)
-
     # Formatting axes
     plt.yticks(np.arange(N_qubits), qubits)
     plt.xticks(np.arange(N_qubits), qubits)
-
-    plt.autoscale(axis = 'both', tight=True)
-    plt.savefig(backend + '_multiqubut_err.png', bbox_inches='tight')
+    plt.autoscale(axis='both', tight=True)
+    plt.savefig('{}_multiqubut_err.png'.format(backend), bbox_inches='tight')
+    plt.close()
 
 
 def create_statistics_image(backend):
@@ -197,12 +193,12 @@ def create_statistics_image(backend):
     img_background_w, img_background_h = img_background.size
 
     # Logos
-    img_qiskit = Image.open('qiskit-logo.png', 'r')
+    img_qiskit = Image.open('res/qiskit-logo.png', 'r')
     factor = 5
     img_qiskit = img_qiskit.resize((img_qiskit.size[0] // factor, img_qiskit.size[1] // factor))
     img_qiskit_w, img_qiskit_h = img_qiskit.size
 
-    img_rqc = Image.open('rqc.jpg', 'r')
+    img_rqc = Image.open('res/rqc.jpg', 'r')
     factor = 10
     img_rqc = img_rqc.resize((img_rqc.size[0] // factor, img_rqc.size[1] // factor))
     img_rqc_w, img_rqc_h = img_rqc.size
@@ -232,3 +228,9 @@ def create_statistics_image(backend):
     ################################################
 
     img_background.save('{}_to_send.png'.format(backend))
+
+    img_background.close()
+    img_rqc.close()
+    img_rerror.close()
+    img_merror.close()
+    img_jobs.close()
