@@ -9,7 +9,7 @@ import json
 import re
 import os
 
-from utils import make_plot, myThread
+from utils import create_statistics_image, myThread
 
 counter = 0
 

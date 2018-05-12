@@ -73,6 +73,7 @@ def make_plot(backend):
 
     d1 = dt.fromtimestamp(times[0]).date()
     d2 = dt.fromtimestamp(times[-1]).date()
+    
     # Timedelta.
     delta = d2 - d1
     days = list()
@@ -89,7 +90,7 @@ def make_plot(backend):
 
     # New xticks.
     locs, labels = plt.xticks()
-    new_ticks = [dt.fromtimestamp(x).strftime('%H')+':00' for x in locs]
+    new_ticks = [dt.fromtimestamp(x).strftime('%H') + ':00' for x in locs]
     plt.xticks(locs[1:-1], new_ticks[1:-1], rotation=0, fontsize=15)
     plt.yticks(fontsize=15)
 
@@ -99,10 +100,10 @@ def make_plot(backend):
     for each in locs:
         yint.append(int(each))
     plt.yticks(yint)
-    plt.ylim(0, math.ceil(max(pending_jobs))+1) #math.ceil(max(pending_jobs))+1
+    plt.ylim(0, math.ceil(max(pending_jobs)) + 1)
 
     # Vertical lines.
-    #for day in days:
+    # for day in days:
     #    plt.axvline(x=day, color='k', linestyle='-.')
 
     # Captions.
@@ -113,6 +114,7 @@ def make_plot(backend):
     plt.ylabel('# of pending jobs', fontsize=15)
     filename = '{}.png'.format(backend)
     plt.savefig(filename, bbox_inches='tight')
+    plt.close()
 
 
 def plot_calibration(backend):
@@ -127,24 +129,20 @@ def plot_calibration(backend):
     last_update = dt.strptime(last_update, "%Y-%m-%dT%H:%M:%S.000Z").timestamp()
     last_update = dt.fromtimestamp(last_update).strftime('%Y, %b %d, %H:%M')
 
-    plt.figure(figsize=(15,15))
+    plt.figure(figsize=(15, 15))
     plt.matshow(readout_error, cmap='Reds', fignum=1)
 
     # Placing actual values in the matshow plot
     for (i,), value in np.ndenumerate(readout_error[0]):
         plt.text(i, 0, '{:0.2f}'.format(value), ha='center', va='center')
 
-    # Formatting axes
-    # locs, labels = plt.xticks()
-    # plt.xticks(1+locs, qubits)
     plt.xticks(np.arange(N_qubits), qubits)
     plt.yticks([], [])
     plt.autoscale(axis='both', tight=True)
 
     plt.title('Backend: {}, Single qubits readout errors,\n last calibration: {}\n'.format(backend, last_update), fontsize=15)
     plt.margins(tight=True)
-    plt.savefig(backend + '_readout_err.png', bbox_inches='tight')
-    # plt.show()
+    plt.savefig('{}_readout_err.png'.format(backend), bbox_inches='tight')
     plt.close()
     #####################
 
@@ -155,15 +153,15 @@ def plot_calibration(backend):
     multi_qubit_error = [full_info['multiQubitGates'][qub]['gateError']['value'] for qub in range(N_qubits)]
 
     # creating gate error matrix
-    error_matrix = np.zeros((N_qubits,N_qubits))
+    error_matrix = np.zeros((N_qubits, N_qubits))
     for i in range(len(multi_qubit_gates)):
         gate = multi_qubit_gates[i]
         qub1, qub2 = gate[0], gate[1]
         error_matrix[qub1][qub2] = multi_qubit_error[i]
     # Symmetrizing the error matrix
-    error_matrix = 1./2*(error_matrix + error_matrix.T)
+    error_matrix = (error_matrix + error_matrix.T) / 2
 
-    plt.figure(figsize=(6,6))
+    plt.figure(figsize=(6, 6))
     plt.matshow(error_matrix, cmap='Reds', fignum=1)
 
     # Placing actual values in the matshow plot
@@ -177,7 +175,7 @@ def plot_calibration(backend):
     plt.xticks(np.arange(N_qubits), qubits)
 
     plt.autoscale(axis = 'both', tight=True)
-    plt.savefig(backend+'_multiqubut_err.png', bbox_inches='tight')
+    plt.savefig(backend + '_multiqubut_err.png', bbox_inches='tight')
 
 
 def create_statistics_image(backend):
