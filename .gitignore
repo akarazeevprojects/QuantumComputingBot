@@ -1,5 +1,6 @@
 res/Qconfig.py
-res/token.json
+res/token_telegram.json
+res/token_slack.json
 real_data.pkl
 ibmqx4.png
 ibmqx5.png

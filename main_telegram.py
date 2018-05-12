@@ -29,7 +29,7 @@ logger.setLevel(logging.DEBUG)
 
 
 def get_token():
-    path = os.path.join('res', 'token.json')
+    path = os.path.join('res', 'token_telegram.json')
     with open(path) as jsn:
         data = json.load(jsn)
     return data['token']
