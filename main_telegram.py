@@ -43,11 +43,10 @@ def choose_backend(bot, update):
     backend = update.message.text[1:]
 
     if backend in backends:
-        filename = '{}.png'.format(backend)
-        make_plot(backend, filename)
+        make_plot(backend)
 
         user_id = update.message.chat_id
-        bot.send_photo(chat_id=user_id, photo=open(filename, 'rb'))
+        bot.send_photo(chat_id=user_id, photo=open('{}.png'.format(backend), 'rb'))
     else:
         update.message.reply_text(info_text)
 

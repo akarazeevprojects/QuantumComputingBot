@@ -32,7 +32,7 @@ def handle_command(command, channel):
     backend = command
     if backend in backends:
         filename = '{}.png'.format(backend)
-        utils.make_plot(backend, filename)
+        utils.make_plot(backend)
         slack_client.api_call(
             'files.upload',
             channels=channel,
