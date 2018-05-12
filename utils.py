@@ -53,10 +53,10 @@ def dumper(delay, run_event):
     step = 0
     while run_event.is_set():
         # Load.
-        if step == 0:
+        try:
             with open(PKL1, 'rb') as f:
                 data = pickle.load(f)
-        elif step == 1:
+        except (pickle.UnpicklingError, EOFError) as e:
             with open(PKL2, 'rb') as f:
                 data = pickle.load(f)
 
