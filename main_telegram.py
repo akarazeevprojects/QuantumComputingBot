@@ -39,6 +39,8 @@ def choose_backend(bot, update):
     global counter
     counter += 1
 
+    update.message.reply_text('Wait a sec ...')
+
     backends = ['ibmqx4', 'ibmqx5']
     backend = update.message.text[1:]
 

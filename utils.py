@@ -26,8 +26,8 @@ qx_config = {
 }
 
 api = IBMQuantumExperience(token=qx_config['APItoken'], config={'url': qx_config['url']})
-PKL1 = 'real_data_1.pkl'
-PKL2 = 'real_data_2.pkl'
+PKL1 = 'data/real_data_1.pkl'
+PKL2 = 'data/real_data_2.pkl'
 
 
 class myThread(threading.Thread):
