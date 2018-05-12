@@ -58,7 +58,7 @@ def handle_command(command, channel):
         response = list()
         response.append("I'm sorry, I don't understand!")
         response.append("I understand only these messages: *ibmqx4* or *ibmqx5*")
-        response = '/n'.join(response)
+        response = '\n'.join(response)
         slack_client.api_call(
             "chat.postMessage",
             channel=channel,
