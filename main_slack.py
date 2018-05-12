@@ -17,6 +17,7 @@ starterbot_id = None
 
 # Constants.
 RTM_READ_DELAY = 1  # 1 second delay between reading from RTM.
+counter = 0
 
 
 def parse_bot_commands(slack_events):
@@ -28,17 +29,33 @@ def parse_bot_commands(slack_events):
 
 
 def handle_command(command, channel):
+    global counter
     backends = ['ibmqx4', 'ibmqx5']
     backend = command
     if backend in backends:
-        filename = '{}.png'.format(backend)
-        utils.make_plot(backend, filename)
+        counter += 1
+        response = "Wait a sec ..."
+        slack_client.api_call(
+            "chat.postMessage",
+            channel=channel,
+            text=response
+        )
+        # Gathering statistics.
+        filename = 'tmp/{}_to_send.png'.format(backend)
+        utils.create_statistics_image(backend)
         slack_client.api_call(
             'files.upload',
             channels=channel,
             as_user=True,
             filename=backend,
             file=open(filename, 'rb'),
+        )
+    elif command == 'info':
+        response = str(counter)
+        slack_client.api_call(
+            "chat.postMessage",
+            channel=channel,
+            text=response
         )
     else:
         response = "I'm sorry, I don't understand!\n I understand only these messages: *ibmqx4* or *ibmqx5*"

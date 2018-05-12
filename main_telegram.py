@@ -9,7 +9,7 @@ import json
 import re
 import os
 
-from utils import make_plot, myThread
+from utils import create_statistics_image, myThread
 
 counter = 0
 
@@ -39,15 +39,16 @@ def choose_backend(bot, update):
     global counter
     counter += 1
 
+    update.message.reply_text('Wait a sec ...')
+
     backends = ['ibmqx4', 'ibmqx5']
     backend = update.message.text[1:]
 
     if backend in backends:
-        filename = '{}.png'.format(backend)
-        make_plot(backend, filename)
+        create_statistics_image(backend)
 
         user_id = update.message.chat_id
-        bot.send_photo(chat_id=user_id, photo=open(filename, 'rb'))
+        bot.send_photo(chat_id=user_id, photo=open('tmp/{}_to_send.png'.format(backend), 'rb'))
     else:
         update.message.reply_text(info_text)
 
