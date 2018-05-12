@@ -1,8 +1,9 @@
-res/Qconfig.py
+res/token_q.json
 res/token_telegram.json
 res/token_slack.json
-real_data_1.pkl
-real_data_2.pkl
+data/real_data_1.pkl
+data/real_data_2.pkl
+dev.ipynb
 tmp/
 
 # Byte-compiled / optimized / DLL files
