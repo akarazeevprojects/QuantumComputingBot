@@ -154,7 +154,7 @@ def plot_calibration(backend):
     plt.close()
     plt.figure(figsize=(15, 15))
     plt.matshow(readout_error, cmap='Reds', fignum=1)
-    # Placing actual values in the matshow plot.
+    #Placing actual values in the matshow plot.
     for (i,), value in np.ndenumerate(readout_error[0]):
         plt.text(i, 0, '{:0.2f}'.format(value), ha='center', va='center')
 
@@ -175,12 +175,14 @@ def plot_calibration(backend):
 
     # creating gate error matrix.
     error_matrix = np.zeros((N_qubits, N_qubits))
+    
+    error_matrix[:,:] = None
     for i in range(len(multi_qubit_gates)):
         gate = multi_qubit_gates[i]
         qub1, qub2 = gate[0], gate[1]
         error_matrix[qub1][qub2] = multi_qubit_error[i]
-    # Symmetrizing the error matrix.
-    error_matrix = (error_matrix + error_matrix.T) / 2
+        error_matrix[qub2][qub1] = multi_qubit_error[i]
+        error_matrix[i][i] = readout_error[0][i]
 
     plt.figure(figsize=(6, 6))
     plt.matshow(error_matrix, cmap='Reds', fignum=1)
@@ -209,9 +211,9 @@ def create_statistics_image(backend):
     img_jobs = Image.open('tmp/{}.png'.format(backend), 'r')
     img_jobs_w, img_jobs_h = img_jobs.size
 
-    img_background = Image.new('RGBA', (int((img_merror_w + img_jobs_w)),
-                                        int((img_rerror_h + img_merror_h)) + 10),
-                               (255, 255, 255, 255))
+    img_background = Image.new('RGBA', (int((img_merror_w + img_jobs_w)), 
+                                        int((img_rerror_h + img_merror_h)) + 10), 
+                                (255, 255, 255, 255))
     img_background_w, img_background_h = img_background.size
 
     # Logos
