@@ -13,8 +13,8 @@ import math
 import sys
 import os
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-# matplotlib.use('Agg')
 
 
 PKL1 = 'data/real_data_1.pkl'

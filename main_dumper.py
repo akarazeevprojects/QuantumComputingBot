@@ -65,7 +65,7 @@ def dumper(delay):
 
 
 def main():
-    delay = 10  # Seconds.
+    delay = 60  # Seconds.
     dumper(delay)
 
 
