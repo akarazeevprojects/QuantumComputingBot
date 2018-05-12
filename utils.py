@@ -47,41 +47,18 @@ def plot_pending_jobs(backend):
     pending_jobs = [[y for y in x[1] if y['backend'] == backend][0]['pending_jobs']
                     for x in sorted(data, key=lambda x: x[0])]
 
-    d1 = dt.fromtimestamp(times[0]).date()
-    d2 = dt.fromtimestamp(times[-1]).date()
-
-    # Timedelta.
-    delta = d2 - d1
-    days = list()
-    for i in range(delta.days + 1):
-        tmp = d1 + timedelta(days=i)
-        tmp_ts = float(tmp.strftime('%s'))
-        if tmp_ts >= times[0] and tmp_ts <= times[-1]:
-            days.append(tmp_ts)
-
-    # Display only last 24h of the data
     plt.figure(figsize=(11, 5))
     plt.grid(True, zorder=5)
     plt.fill_between(times, pending_jobs, color='brown')
 
     # New xticks.
     locs, labels = plt.xticks()
-    new_ticks = [dt.fromtimestamp(x).strftime('%H') + ':00' for x in locs]
+    new_ticks = [dt.fromtimestamp(x).strftime('%H:%M') for x in locs]
     plt.xticks(locs[1:-1], new_ticks[1:-1], rotation=0, fontsize=15)
     plt.yticks(fontsize=15)
 
-    # y axis: display only integer values
-    yint = []
-    locs, labels = plt.yticks()
-    for each in locs:
-        yint.append(int(each))
-    plt.yticks(yint)
     plt.ylim(0, math.ceil(max(pending_jobs)) + 1)
 
-    # Captions.
-    # plt.title('IBMQ Backend: {},\nLocal time of bot: {}'.format(backend,
-    #           dt.fromtimestamp(time.time()).strftime('%Y, %b %d, %H:%M')),
-    #           fontsize=15)
     plt.title('Local time of bot: {}'.format(dt.fromtimestamp(time.time()).strftime('%Y, %b %d, %H:%M')),
               fontsize=15)
     plt.xlabel('Time', fontsize=15)
